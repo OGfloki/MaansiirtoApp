@@ -20,25 +20,121 @@
             }
         }
     </script>
+    <style>
+        /* LOGO JA RGB-HEHKUANIMAATIO */
+        .logo-container {
+            position: relative;
+            width: fit-content;
+            padding: 3px;
+            border-radius: 14px;
+            background: #1e1e1e;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(249, 115, 22, 0.25), 0 0 30px rgba(59, 130, 246, 0.15);
+            margin: 0 auto;
+        }
+
+        .rgb-border {
+            position: absolute;
+            inset: -50%;
+            background: conic-gradient(from 0deg, #f97316, #3b82f6, #10b981, #ef4444, #f97316);
+            animation: rotateRgb 6s linear infinite;
+            filter: blur(4px);
+            z-index: 1;
+        }
+
+        @keyframes rotateRgb {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .logo-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #1e1e1e;
+            padding: 8px 14px;
+            border-radius: 12px;
+        }
+
+        .icon-box {
+            width: 36px;
+            height: 36px;
+            background: #121212;
+            border: 1px solid #f97316;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .text-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-title {
+            font-family: sans-serif;
+            font-weight: 800;
+            font-size: 15px;
+            color: #fff;
+            letter-spacing: 0.5px;
+            line-height: 1.1;
+        }
+
+        .brand-title span {
+            color: #f97316;
+        }
+
+        .brand-subtitle {
+            font-family: sans-serif;
+            font-size: 8.5px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-top: 2px;
+        }
+    </style>
 </head>
 <body class="bg-darkbg text-gray-100 min-h-screen font-sans">
 
     <div class="max-w-md mx-auto p-4 pb-16">
         
-        <!-- YLÄPALKKI -->
-        <header class="mb-6 border-b border-gray-800 pb-4">
-            <div class="flex justify-between items-center mb-2">
-                <h1 class="text-xl font-bold text-accent">
-                    MaansiirtoApp
-                </h1>
-                <div id="role-badge" class="text-xs bg-gray-800 text-gray-300 px-2.5 py-1 rounded-full border border-gray-700">
-                    Rooli: Ei valittu
+        <!-- YLÄPALKKI: VAIN LOGO YLÄREUNASSA -->
+        <header class="mb-4 border-b border-gray-800 pb-4">
+            <div class="flex justify-center pt-1">
+                <div class="logo-container">
+                    <div class="rgb-border"></div>
+                    <div class="logo-content">
+                        <div class="icon-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1 15H3V17H1V15Z" fill="#f97316"/>
+                                <path d="M5 14H11V18H5V14Z" fill="#f97316"/>
+                                <path d="M13 13H19V18H13V13Z" fill="#f97316"/>
+                                <path d="M3 11L5 9H16L19 13H3V11Z" fill="#f97316"/>
+                                <circle cx="7" cy="18" r="2" fill="#fff"/>
+                                <circle cx="16" cy="18" r="2" fill="#fff"/>
+                            </svg>
+                        </div>
+                        <div class="text-box">
+                            <div class="brand-title">MAANSIIRTO<span>APP</span></div>
+                            <div class="brand-subtitle">LOGISTIIKAN HALLINTA</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <button onclick="goHome()" class="text-xs text-accent hover:underline flex items-center gap-1">
+        </header>
+
+        <!-- RIVI LOGON JÄLKEEN: ROOLI JA ULOSKIRJAUS -->
+        <div class="flex justify-between items-center text-xs mb-4 px-1">
+            <div id="role-badge" class="bg-gray-800 text-gray-300 px-2.5 py-1 rounded-full border border-gray-700">
+                Rooli: Ei valittu
+            </div>
+            <button onclick="goHome()" class="text-accent hover:underline flex items-center gap-1 font-medium">
                 🔄 Vaihda roolia / Kirjaudu ulos
             </button>
-        </header>
+        </div>
 
         <!-- NÄKYMÄ: ALKUNÄYTTÖ -->
         <div id="view-home" class="space-y-4">
@@ -184,7 +280,7 @@
                 <div id="manager-staff-list" class="space-y-2 pt-1"></div>
             </div>
 
-            <!-- KULJETTAJAROSTERI (NÄKYY POMOLLE KOKONAAN, AJOJÄRJESTÄJÄLLE VAIN TILAT ILMAN PINNEJÄ/NAPPEJA) -->
+            <!-- KULJETTAJAROSTERI -->
             <div class="bg-cardbg p-4 rounded-xl border border-gray-800 space-y-3">
                 <div class="flex justify-between items-center">
                     <h3 class="text-sm font-semibold text-gray-300">Kuljettajarosteri</h3>
@@ -195,7 +291,7 @@
                 <div id="manager-driver-list" class="space-y-2 pt-1"></div>
             </div>
 
-            <!-- Kuormat (NÄKYY KAIKILLE) -->
+            <!-- Kuormat -->
             <div class="space-y-3">
                 <h3 class="text-sm font-semibold text-gray-300">Kaikki kuormat</h3>
                 <div id="manager-loads-list" class="space-y-3"></div>
@@ -673,9 +769,7 @@
 
             let isFullBoss = currentUser.role === 'boss' || currentUser.role === 'developper';
             
-            // Piilotetaan pomojen hallinta kokonaan ajojärjestäjältä
             document.getElementById('section-boss-management').style.display = isFullBoss ? 'block' : 'none';
-            // Piilotetaan "Lisää kuljettaja" -nappi ajojärjestäjältä
             document.getElementById('btn-add-driver').style.display = isFullBoss ? 'block' : 'none';
 
             if (isFullBoss) {
@@ -691,7 +785,6 @@
                 });
             }
 
-            // Kuljettajarosteri kaikille, mutta ilman PIN-koodeja ja nappeja ajojärjestäjälle
             driversData.forEach(d => {
                 let status = d.status || 'free';
                 let statusBadge = '<span class="text-emerald-400 font-semibold">🟢 Vapaa</span>';
