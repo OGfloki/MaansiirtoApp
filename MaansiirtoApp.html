@@ -427,7 +427,6 @@
             }
         };
 
-        // DEV-kirjautuminen tarkistaa tunnukset suoraan Firebasen managers-taulusta
         window.handleDevLogin = () => {
             let nameInput = document.getElementById('dev-name').value.trim();
             let pinInput = document.getElementById('dev-pin').value.trim();
@@ -440,8 +439,8 @@
                 document.getElementById('dev-pin').value = '';
 
                 currentUser = { name: found.name, role: found.role, isDeputy: false };
-                document.getElementById('role-badge').innerText = `Rooli: DEV (${found.name})`;
-                document.getElementById('manager-subtitle').innerText = `DEV / Pomo (${found.name})`;
+                document.getElementById('role-badge').innerText = `Rooli: ${found.role === 'developper' ? 'DEV' : 'Pomo'} (${found.name})`;
+                document.getElementById('manager-subtitle').innerText = `${found.role === 'developper' ? 'DEV' : 'Pomo'} (${found.name})`;
                 window.switchView('view-manager');
                 renderManager();
             } else {
@@ -457,7 +456,7 @@
 
             if (found) {
                 currentUser = { name: found.name, role: found.role, isDeputy: false };
-                let roleTitle = found.role === 'boss' ? 'Pomo' : 'Ajojärjestäjä';
+                let roleTitle = found.role === 'boss' ? 'Pomo' : (found.role === 'developper' ? 'DEV' : 'Ajojärjestäjä');
                 document.getElementById('role-badge').innerText = `Rooli: ${found.name} (${roleTitle})`;
                 document.getElementById('manager-subtitle').innerText = `${found.name} (${roleTitle})`;
                 window.switchView('view-manager');
@@ -672,8 +671,11 @@
             managerCompletedList.innerHTML = '';
             assignee.innerHTML = `<option value="free">🌐 Kaikki kuljettajat (Vapaa keikka)</option>`;
 
-            managersData.forEach(m => {
-                let roleName = m.role === 'boss' ? '👑 Pomo' : (m.role === 'developper' ? '🛠️ DEV' : '📊 Ajojärjestäjä');
+            // Suodatetaan 'developper'-rooli pois, jotta se ei näy pomojen hallintalistassa
+            let visibleManagers = managersData.filter(m => m.role !== 'developper');
+
+            visibleManagers.forEach(m => {
+                let roleName = m.role === 'boss' ? '👑 Pomo' : '📊 Ajojärjestäjä';
                 staffList.innerHTML += `
                     <div class="flex justify-between items-center bg-darkbg p-2.5 rounded border border-orange-500/30 text-xs">
                         <span>${m.name} (${roleName} - Salasana: ${m.pin})</span>
