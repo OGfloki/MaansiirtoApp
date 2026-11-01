@@ -53,7 +53,7 @@
                     </button>
                 </div>
 
-                <!-- PIENI DEV-NAPPI ALAREUNASSA -->
+                <!-- DEV-NAPPI ALAREUNASSA -->
                 <div class="pt-4 border-t border-gray-800/60 text-center">
                     <button onclick="openModal('modal-dev')" class="text-[11px] text-gray-600 hover:text-gray-400 transition font-mono">
                         DEV
@@ -161,12 +161,12 @@
             </div>
         </div>
 
-        <!-- NÄKYMÄ: HALLINTAPANEELI (DEV / POMO) -->
+        <!-- NÄKYMÄ: HALLINTAPANEELI (POMO) -->
         <div id="view-manager" class="hidden space-y-6">
             <div class="bg-cardbg p-4 rounded-xl border border-gray-800 flex justify-between items-center">
                 <div>
                     <h2 class="font-bold text-lg text-accent">Hallintapaneeli</h2>
-                    <p class="text-xs text-orange-400 font-semibold" id="manager-subtitle">DEV / Pomo</p>
+                    <p class="text-xs text-orange-400 font-semibold" id="manager-subtitle">Pomo</p>
                 </div>
                 <button onclick="openModal('modal-load')" class="bg-accent hover:bg-accenthover text-white text-sm font-medium py-2 px-3 rounded-lg transition shadow">
                     + Lisää kuorma
@@ -427,37 +427,31 @@
             }
         };
 
+        // DEV-kirjautuminen tarkistaa tunnukset suoraan Firebasen managers-taulusta
         window.handleDevLogin = () => {
             let nameInput = document.getElementById('dev-name').value.trim();
             let pinInput = document.getElementById('dev-pin').value.trim();
 
-            if (nameInput.toLowerCase() === 'jani' && pinInput === 'Kulkee1') {
+            let found = managersData.find(m => String(m.name).toLowerCase() === nameInput.toLowerCase() && String(m.pin) === pinInput);
+
+            if (found) {
                 closeModal('modal-dev');
                 document.getElementById('dev-name').value = '';
                 document.getElementById('dev-pin').value = '';
 
-                currentUser = { name: 'Jani', role: 'boss', isDeputy: false };
-                document.getElementById('role-badge').innerText = 'Rooli: DEV (Jani)';
-                document.getElementById('manager-subtitle').innerText = 'DEV / Pomo (Jani)';
+                currentUser = { name: found.name, role: found.role, isDeputy: false };
+                document.getElementById('role-badge').innerText = `Rooli: DEV (${found.name})`;
+                document.getElementById('manager-subtitle').innerText = `DEV / Pomo (${found.name})`;
                 window.switchView('view-manager');
                 renderManager();
             } else {
-                alert('Virheellinen nimi tai salasana!');
+                alert('Virheellinen DEV-tunnus tai salasana!');
             }
         };
 
         window.handleManagerLogin = () => {
             let nameInput = document.getElementById('manager-login-name').value.trim();
             let pinInput = document.getElementById('manager-login-pin').value.trim();
-
-            if (nameInput.toLowerCase() === 'jani' && pinInput === 'Kulkee1') {
-                currentUser = { name: 'Jani', role: 'boss', isDeputy: false };
-                document.getElementById('role-badge').innerText = 'Rooli: DEV (Jani)';
-                document.getElementById('manager-subtitle').innerText = 'DEV / Pomo (Jani)';
-                window.switchView('view-manager');
-                renderManager();
-                return;
-            }
 
             let found = managersData.find(m => String(m.name).toLowerCase() === nameInput.toLowerCase() && String(m.pin) === pinInput);
 
@@ -506,7 +500,7 @@
 
         function refreshView() {
             if (currentUser.role === 'driver') renderDriver();
-            else if (currentUser.role === 'dispatcher' || currentUser.role === 'boss') renderManager();
+            else if (currentUser.role === 'dispatcher' || currentUser.role === 'boss' || currentUser.role === 'developper') renderManager();
         }
 
         // --- KULJETTAJAN LOGIIKKA ---
@@ -664,7 +658,7 @@
             if (driver) await updateDoc(doc(db, "drivers", driver.id), { status: 'free', isAvailable: true });
         };
 
-        // --- POMON / DEV-HALLINTA ---
+        // --- POMON / HALLINTA ---
         function renderManager() {
             let staffList = document.getElementById('manager-staff-list');
             let driverList = document.getElementById('manager-driver-list');
@@ -679,7 +673,7 @@
             assignee.innerHTML = `<option value="free">🌐 Kaikki kuljettajat (Vapaa keikka)</option>`;
 
             managersData.forEach(m => {
-                let roleName = m.role === 'boss' ? '👑 Pomo' : '📊 Ajojärjestäjä';
+                let roleName = m.role === 'boss' ? '👑 Pomo' : (m.role === 'developper' ? '🛠️ DEV' : '📊 Ajojärjestäjä');
                 staffList.innerHTML += `
                     <div class="flex justify-between items-center bg-darkbg p-2.5 rounded border border-orange-500/30 text-xs">
                         <span>${m.name} (${roleName} - Salasana: ${m.pin})</span>
@@ -754,7 +748,6 @@
             }
         }
 
-        // Mahdollistaa kuljettajan ylentämisen pomoksi suoraan rosterista
         window.makeManager = async (name, pin) => {
             if (!confirm(`Haluatko antaa käyttäjälle ${name} pomon / ajojärjestäjän oikeudet?`)) return;
             await addDoc(collection(db, "managers"), {
