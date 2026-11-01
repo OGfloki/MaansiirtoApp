@@ -21,7 +21,7 @@
         }
     </script>
     <style>
-        /* LOGO JA RGB-HEHKUANIMAATIO */
+        /* LOGO JA RGB-HEHKUANIMAATIO (VAIN TEKSTI) */
         .logo-container {
             position: relative;
             width: fit-content;
@@ -52,34 +52,23 @@
             z-index: 2;
             display: flex;
             align-items: center;
-            gap: 12px;
             background: #1e1e1e;
-            padding: 8px 14px;
+            padding: 10px 20px;
             border-radius: 12px;
-        }
-
-        .icon-box {
-            width: 36px;
-            height: 36px;
-            background: #121212;
-            border: 1px solid #f97316;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .text-box {
             display: flex;
             flex-direction: column;
+            text-align: center;
         }
 
         .brand-title {
             font-family: sans-serif;
             font-weight: 800;
-            font-size: 15px;
+            font-size: 18px;
             color: #fff;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             line-height: 1.1;
         }
 
@@ -89,11 +78,11 @@
 
         .brand-subtitle {
             font-family: sans-serif;
-            font-size: 8.5px;
+            font-size: 9.5px;
             color: #888;
             text-transform: uppercase;
-            letter-spacing: 1.2px;
-            margin-top: 2px;
+            letter-spacing: 2px;
+            margin-top: 3px;
         }
     </style>
 </head>
@@ -101,22 +90,12 @@
 
     <div class="max-w-md mx-auto p-4 pb-16">
         
-        <!-- YLÄPALKKI: VAIN LOGO YLÄREUNASSA -->
+        <!-- YLÄPALKKI: VAIN TEKSTILOGO -->
         <header class="mb-4 border-b border-gray-800 pb-4">
             <div class="flex justify-center pt-1">
                 <div class="logo-container">
                     <div class="rgb-border"></div>
                     <div class="logo-content">
-                        <div class="icon-box">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M1 15H3V17H1V15Z" fill="#f97316"/>
-                                <path d="M5 14H11V18H5V14Z" fill="#f97316"/>
-                                <path d="M13 13H19V18H13V13Z" fill="#f97316"/>
-                                <path d="M3 11L5 9H16L19 13H3V11Z" fill="#f97316"/>
-                                <circle cx="7" cy="18" r="2" fill="#fff"/>
-                                <circle cx="16" cy="18" r="2" fill="#fff"/>
-                            </svg>
-                        </div>
                         <div class="text-box">
                             <div class="brand-title">MAANSIIRTO<span>APP</span></div>
                             <div class="brand-subtitle">LOGISTIIKAN HALLINTA</div>
