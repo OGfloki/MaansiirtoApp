@@ -70,9 +70,7 @@
                     <button onclick="goHome()" class="text-xs text-gray-400 hover:text-white">Takaisin</button>
                 </div>
                 
-                <div id="driver-selection-list" class="space-y-2 max-h-60 overflow-y-auto">
-                    <!-- Latautuu automaattisesti tietokannasta -->
-                </div>
+                <div id="driver-selection-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
             </div>
         </div>
 
@@ -699,7 +697,10 @@
                 driverList.innerHTML += `
                     <div class="flex justify-between items-center bg-darkbg p-2.5 rounded border border-gray-800 text-xs">
                         <span>${d.name} (PIN: ${d.pin}) - ${statusBadge}</span>
-                        <button onclick="removeDriver('${d.id}')" class="text-red-400 bg-red-950/30 px-2 py-1 rounded">Poista</button>
+                        <div class="flex gap-1.5">
+                            <button onclick="makeManager('${d.name}', '${d.pin}')" class="text-orange-400 bg-orange-950/40 px-2 py-1 rounded hover:bg-orange-900/60 transition">Ylennä pomoksi</button>
+                            <button onclick="removeDriver('${d.id}')" class="text-red-400 bg-red-950/30 px-2 py-1 rounded">Poista</button>
+                        </div>
                     </div>
                 `;
                 assignee.innerHTML += `<option value="${d.name}">${d.name}</option>`;
@@ -752,6 +753,17 @@
                 });
             }
         }
+
+        // Mahdollistaa kuljettajan ylentämisen pomoksi suoraan rosterista
+        window.makeManager = async (name, pin) => {
+            if (!confirm(`Haluatko antaa käyttäjälle ${name} pomon / ajojärjestäjän oikeudet?`)) return;
+            await addDoc(collection(db, "managers"), {
+                name: String(name),
+                pin: String(pin),
+                role: 'dispatcher'
+            });
+            alert(`${name} on nyt lisätty pomoihin/ajojärjestäjiin!`);
+        };
 
         window.saveManager = async () => {
             let name = document.getElementById('new-manager-name').value.trim();
