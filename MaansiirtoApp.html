@@ -153,6 +153,12 @@
                 <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-400">📋 Omat aktiiviset ajot</h3>
                 <div id="driver-active-loads" class="space-y-3"></div>
             </div>
+
+            <!-- Tänään valmiit ajot -->
+            <div class="space-y-3 pt-2 border-t border-gray-800 pt-4">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-emerald-400">✅ Tänään valmiit ajot (<span id="count-completed">0</span>)</h3>
+                <div id="driver-completed-loads" class="space-y-3"></div>
+            </div>
         </div>
 
         <!-- NÄKYMÄ: HALLINTAPANEELI (DEV / POMO) -->
@@ -481,8 +487,9 @@
 
             if (lastResetDate !== todayStr) {
                 for (let l of loadsData) {
-                    let loadDate = l.createdAt ? l.createdAt.split('T')[0] : todayStr;
-                    if (loadDate !== todayStr && l.status !== 'active') {
+                    let checkDate = l.completedAt ? l.completedAt.split('T')[0] : (l.createdAt ? l.createdAt.split('T')[0] : todayStr);
+                    // Poistetaan vanhat valmiit tai vanhat aktiiviset/vapaat, jotka eivät ole tältä päivältä
+                    if (checkDate !== todayStr && l.status === 'completed') {
                         await deleteDoc(doc(db, "loads", l.id));
                     }
                 }
@@ -520,17 +527,27 @@
             let kasettiList = document.getElementById('driver-kasetti-list');
             let nuppiList = document.getElementById('driver-nuppi-list');
             let activeList = document.getElementById('driver-active-loads');
+            let completedList = document.getElementById('driver-completed-loads');
             
             kasettiList.innerHTML = '';
             nuppiList.innerHTML = '';
             activeList.innerHTML = '';
+            completedList.innerHTML = '';
 
             let freeKasetti = loadsData.filter(l => l.status === 'free' && l.truckType === 'Kasettiauto');
             let freeNuppi = loadsData.filter(l => l.status === 'free' && l.truckType !== 'Kasettiauto');
             let active = loadsData.filter(l => l.status === 'active' && String(l.driver) === String(currentUser.name));
+            
+            let todayStr = new Date().toISOString().split('T')[0];
+            let completed = loadsData.filter(l => {
+                if (l.status !== 'completed' || String(l.driver) !== String(currentUser.name)) return false;
+                let compDate = l.completedAt ? l.completedAt.split('T')[0] : '';
+                return compDate === todayStr;
+            });
 
             document.getElementById('count-kasetti').innerText = freeKasetti.length;
             document.getElementById('count-nuppi').innerText = freeNuppi.length;
+            document.getElementById('count-completed').innerText = completed.length;
 
             if (freeKasetti.length === 0) {
                 kasettiList.innerHTML = `<div class="text-xs text-gray-500 text-center p-2 bg-cardbg rounded border border-gray-800">Ei vapaita kasetti-ajoja.</div>`;
@@ -567,6 +584,23 @@
                                     <button onclick="completeLoad('${l.id}')" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded font-medium">✅ Valmis</button>
                                 </div>
                             </div>
+                        </div>
+                    `;
+                });
+            }
+
+            if (completed.length === 0) {
+                completedList.innerHTML = `<div class="text-xs text-gray-500 text-center p-2 bg-cardbg rounded border border-gray-800">Ei valmiita ajoja tältä päivältä.</div>`;
+            } else {
+                completed.forEach(l => {
+                    let truckBadge = l.truckType === 'Kasettiauto' ? '🚛 Kasettiauto' : '🚚 Nuppiauto';
+                    completedList.innerHTML += `
+                        <div class="bg-cardbg p-3 rounded-lg border border-emerald-500/30 space-y-1 text-xs opacity-80">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-emerald-400">✅ Valmis: ${l.destination}</span>
+                                <span class="bg-gray-800 text-gray-300 px-2 py-0.5 rounded">${truckBadge}</span>
+                            </div>
+                            <div>Rahti: ${l.desc}</div>
                         </div>
                     `;
                 });
@@ -616,8 +650,10 @@
             }
         };
 
+        // Muutetaan tila completediksi eikä poisteta suoraan
         window.completeLoad = async (id) => {
-            await deleteDoc(doc(db, "loads", id));
+            let nowIso = new Date().toISOString();
+            await updateDoc(doc(db, "loads", id), { status: 'completed', completedAt: nowIso });
             let driver = driversData.find(d => String(d.name) === String(currentUser.name));
             if (driver) await updateDoc(doc(db, "drivers", driver.id), { status: 'free', isAvailable: true });
         };
@@ -662,8 +698,8 @@
             if (loadsData.length === 0) loadsList.innerHTML = `<div class="text-xs text-gray-500 text-center p-2">Ei kuormia.</div>`;
             loadsData.forEach(l => {
                 let truckBadge = l.truckType === 'Kasettiauto' ? '🚛 Kasettiauto' : '🚚 Nuppiauto';
-                let statusText = l.status === 'free' ? 'Odottaa ottajaa (Vapaa)' : `Matkalla (${l.driver})`;
-                let statusColor = l.status === 'free' ? 'text-blue-400' : 'text-emerald-400 font-semibold';
+                let statusText = l.status === 'free' ? 'Odottaa ottajaa (Vapaa)' : (l.status === 'completed' ? `Valmis (${l.driver})` : `Matkalla (${l.driver})`);
+                let statusColor = l.status === 'free' ? 'text-blue-400' : (l.status === 'completed' ? 'text-emerald-400' : 'text-emerald-400 font-semibold');
 
                 loadsList.innerHTML += `
                     <div class="bg-cardbg p-3.5 rounded-lg border border-gray-800 space-y-1 text-xs">
