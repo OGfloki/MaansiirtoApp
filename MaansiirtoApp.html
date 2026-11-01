@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maantiekuljetus App</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#121212',
+                        cardbg: '#1e1e1e',
+                        accent: '#f97316',
+                        accenthover: '#ea580c',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-darkbg text-gray-100 min-h-screen font-sans">
+
+    <div class="max-w-md mx-auto p-4 pb-16">
+        
+        <!-- YLÄPALKKI -->
+        <header class="mb-6 border-b border-gray-800 pb-4">
+            <div class="flex justify-between items-center mb-2">
+                <h1 class="text-xl font-bold text-accent flex items-center gap-2">
+                    <span>🚚</span> KuljetusApp
+                </h1>
+                <div id="role-badge" class="text-xs bg-gray-800 text-gray-300 px-2.5 py-1 rounded-full border border-gray-700">
+                    Rooli: Ei valittu
+                </div>
+            </div>
+            <button onclick="goHome()" class="text-xs text-accent hover:underline flex items-center gap-1">
+                🔄 Vaihda roolia / Kirjaudu ulos
+            </button>
+        </header>
+
+        <!-- NÄKYMÄ: ALKUNÄYTTÖ -->
+        <div id="view-home" class="space-y-4">
+            <div class="bg-cardbg p-6 rounded-xl border border-gray-800 text-center space-y-4 shadow-lg">
+                <h2 class="text-lg font-semibold text-gray-200">Valitse roolisi</h2>
+                <div class="space-y-3 pt-2">
+                    <button onclick="switchView('view-driver-login')" class="w-full bg-accent hover:bg-accenthover text-white font-medium py-3 px-4 rounded-lg transition shadow-md flex items-center justify-center gap-2">
+                        <span>🚛</span> Olen kuljettaja
+                    </button>
+                    <button onclick="switchView('view-manager-login')" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium py-3 px-4 rounded-lg border border-gray-700 transition flex items-center justify-center gap-2">
+                        <span>📊</span> Pomo / Ajojärjestäjä
+                    </button>
+                </div>
+
+                <!-- PIENI DEV-NAPPI ALAREUNASSA -->
+                <div class="pt-4 border-t border-gray-800/60 text-center">
+                    <button onclick="openModal('modal-dev')" class="text-[11px] text-gray-600 hover:text-gray-400 transition font-mono">
+                        DEV
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- NÄKYMÄ: KULJETTAJAN KIRJAUTUMINEN -->
+        <div id="view-driver-login" class="hidden space-y-4">
+            <div class="bg-cardbg p-6 rounded-xl border border-gray-800 space-y-4 shadow-lg">
+                <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                    <h2 class="text-lg font-semibold text-gray-200">Kuljettajan kirjautuminen</h2>
+                    <button onclick="goHome()" class="text-xs text-gray-400 hover:text-white">Takaisin</button>
+                </div>
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Nimesi</label>
+                        <input type="text" id="login-name" placeholder="Esim. Matti Meikäläinen" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100 focus:outline-none focus:border-accent">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">PIN-koodi</label>
+                        <input type="password" id="login-pin" placeholder="****" maxlength="6" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100 focus:outline-none focus:border-accent">
+                    </div>
+                    <button onclick="handleDriverLogin()" class="w-full bg-accent hover:bg-accenthover text-white font-medium py-2.5 rounded-lg transition shadow mt-2">
+                        Kirjaudu sisään
+                    </button>
+                </div>
+                <div class="border-t border-gray-800 pt-3 text-center">
+                    <button onclick="switchView('view-driver-qr')" class="text-xs text-accent hover:underline">
+                        📷 Uusi laite? Näytä QR-koodi pomolle
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- NÄKYMÄ: POMON / AJOJÄRJESTÄJÄN KIRJAUTUMINEN -->
+        <div id="view-manager-login" class="hidden space-y-4">
+            <div class="bg-cardbg p-6 rounded-xl border border-gray-800 space-y-4 shadow-lg">
+                <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                    <h2 class="text-lg font-semibold text-orange-400">Pomon / Ajojärjestäjän kirjautuminen</h2>
+                    <button onclick="goHome()" class="text-xs text-gray-400 hover:text-white">Takaisin</button>
+                </div>
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Käyttäjänimi</label>
+                        <input type="text" id="manager-login-name" placeholder="Käyttäjänimi" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100 focus:outline-none focus:border-accent">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Salasana</label>
+                        <input type="password" id="manager-login-pin" placeholder="Salasana" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100 focus:outline-none focus:border-accent">
+                    </div>
+                    <button onclick="handleManagerLogin()" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-medium py-2.5 rounded-lg transition shadow mt-2">
+                        Kirjaudu hallintaan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- NÄKYMÄ: KULJETTAJAN QR -->
+        <div id="view-driver-qr" class="hidden space-y-4">
+            <div class="bg-cardbg p-6 rounded-xl border border-gray-800 text-center space-y-4 shadow-lg">
+                <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                    <h2 class="text-sm font-semibold text-gray-200">Kuljettajan laitevarmennus</h2>
+                    <button onclick="switchView('view-driver-login')" class="text-xs text-gray-400 hover:text-white">Takaisin</button>
+                </div>
+                <p class="text-xs text-gray-400">Näytä tämä QR-koodi pomolle, jotta hän voi rekisteröidä laitteesi ja antaa PIN-koodin.</p>
+                <div class="bg-white p-4 inline-block rounded-lg mx-auto shadow">
+                    <div class="w-32 h-32 bg-black flex items-center justify-center text-white text-xs font-mono text-center p-2">
+                        [ QR-KOODI ]
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NÄKYMÄ: KULJETTAJAN PÄÄNÄKYMÄ -->
+        <div id="view-driver-dashboard" class="hidden space-y-6">
+            <div class="bg-cardbg p-4 rounded-xl border border-gray-800 flex justify-between items-center">
+                <div>
+                    <h2 class="font-bold text-lg" id="driver-title">Kuljettaja</h2>
+                    <div id="driver-status-btn-container" class="mt-2"></div>
+                </div>
+                <div class="text-right text-xs text-gray-400">
+                    <div>Nollaus klo 24:00</div>
+                    <div class="text-emerald-400 font-semibold">Online 🟢</div>
+                </div>
+            </div>
+
+            <!-- Vapaat Kasetti-ajot -->
+            <div class="space-y-3">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-orange-400 flex items-center gap-1">
+                    <span>🚛</span> Vapaat Kasetti-ajot (<span id="count-kasetti">0</span>)
+                </h3>
+                <div id="driver-kasetti-list" class="space-y-3"></div>
+            </div>
+
+            <!-- Vapaat Nuppi-ajot -->
+            <div class="space-y-3 pt-2">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-blue-400 flex items-center gap-1">
+                    <span>🚚</span> Vapaat Nuppi-ajot (<span id="count-nuppi">0</span>)
+                </h3>
+                <div id="driver-nuppi-list" class="space-y-3"></div>
+            </div>
+
+            <!-- Omat aktiiviset -->
+            <div class="space-y-3 pt-2 border-t border-gray-800 pt-4">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-400">📋 Omat aktiiviset ajot</h3>
+                <div id="driver-active-loads" class="space-y-3"></div>
+            </div>
+        </div>
+
+        <!-- NÄKYMÄ: HALLINTAPANEELI (DEV / POMO) -->
+        <div id="view-manager" class="hidden space-y-6">
+            <div class="bg-cardbg p-4 rounded-xl border border-gray-800 flex justify-between items-center">
+                <div>
+                    <h2 class="font-bold text-lg text-accent">Hallintapaneeli</h2>
+                    <p class="text-xs text-orange-400 font-semibold" id="manager-subtitle">DEV / Pääpomo</p>
+                </div>
+                <button onclick="openModal('modal-load')" class="bg-accent hover:bg-accenthover text-white text-sm font-medium py-2 px-3 rounded-lg transition shadow">
+                    + Lisää kuorma
+                </button>
+            </div>
+
+            <!-- Pomon / Ajojärjestäjien hallinta -->
+            <div class="bg-cardbg p-4 rounded-xl border border-orange-500/40 space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-semibold text-orange-400">👑 Pomot & Ajojärjestäjät</h3>
+                    <button onclick="openModal('modal-manager')" class="text-xs bg-orange-600 hover:bg-orange-500 text-white px-2.5 py-1.5 rounded transition">
+                        + Lisää Pomo / Ajojärjestäjä
+                    </button>
+                </div>
+                <div id="manager-staff-list" class="space-y-2 pt-1"></div>
+            </div>
+
+            <!-- Kuljettajarosteri -->
+            <div class="bg-cardbg p-4 rounded-xl border border-gray-800 space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-semibold text-gray-300">Kuljettajarosteri</h3>
+                    <button onclick="openModal('modal-driver')" class="text-xs bg-gray-800 hover:bg-gray-700 border border-gray-700 text-accent px-2.5 py-1.5 rounded transition">
+                        + Lisää Kuljettaja
+                    </button>
+                </div>
+                <div id="manager-driver-list" class="space-y-2 pt-1"></div>
+            </div>
+
+            <!-- Kuormat -->
+            <div class="space-y-3">
+                <h3 class="text-sm font-semibold text-gray-300">Kaikki kuormat</h3>
+                <div id="manager-loads-list" class="space-y-3"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL: DEV-KIRJAUTUMINEN -->
+    <div id="modal-dev" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+        <div class="bg-cardbg border border-gray-700 w-full max-w-sm p-5 rounded-xl space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="font-bold text-orange-400">DEV-kirjautuminen</h3>
+                <button onclick="closeModal('modal-dev')" class="text-gray-400 hover:text-white">✕</button>
+            </div>
+            <div class="space-y-3 text-sm">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Anna nimi</label>
+                    <input type="text" id="dev-name" placeholder="Käyttäjänimi" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100 focus:outline-none focus:border-orange-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Anna salasana</label>
+                    <input type="password" id="dev-pin" placeholder="Salasana" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100 focus:outline-none focus:border-orange-500">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeModal('modal-dev')" class="bg-gray-800 text-gray-300 px-3 py-2 rounded-lg text-xs">Peruuta</button>
+                <button onclick="handleDevLogin()" class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-medium">Kirjaudu sisään</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: LISÄÄ POMO / AJOJÄRJESTÄJÄ -->
+    <div id="modal-manager" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+        <div class="bg-cardbg border border-orange-500/40 w-full max-w-sm p-5 rounded-xl space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="font-bold text-orange-400">Lisää Pomo / Ajojärjestäjä</h3>
+                <button onclick="closeModal('modal-manager')" class="text-gray-400 hover:text-white">✕</button>
+            </div>
+            <div class="space-y-3 text-sm">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Nimi / Käyttäjänimi</label>
+                    <input type="text" id="new-manager-name" placeholder="Esim. Matti Pomo" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Salasana</label>
+                    <input type="password" id="new-manager-pin" placeholder="Salasana" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Rooli</label>
+                    <select id="new-manager-role" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100">
+                        <option value="boss">Pääpomo</option>
+                        <option value="dispatcher">Ajojärjestäjä</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeModal('modal-manager')" class="bg-gray-800 text-gray-300 px-3 py-2 rounded-lg text-xs">Peruuta</button>
+                <button onclick="saveManager()" class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-medium">Tallenna</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: LISÄÄ KULJETTAJA -->
+    <div id="modal-driver" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+        <div class="bg-cardbg border border-gray-800 w-full max-w-sm p-5 rounded-xl space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="font-bold text-accent">Lisää uusi kuljettaja</h3>
+                <button onclick="closeModal('modal-driver')" class="text-gray-400 hover:text-white">✕</button>
+            </div>
+            <div class="space-y-3 text-sm">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Nimi</label>
+                    <input type="text" id="new-driver-name" placeholder="Matti Meikäläinen" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">PIN-koodi</label>
+                    <input type="password" id="new-driver-pin" placeholder="1234" maxlength="6" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeModal('modal-driver')" class="bg-gray-800 text-gray-300 px-3 py-2 rounded-lg text-xs">Peruuta</button>
+                <button onclick="saveDriver()" class="bg-accent text-white px-4 py-2 rounded-lg text-xs font-medium">Tallenna</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: LISÄÄ KUORMA -->
+    <div id="modal-load" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+        <div class="bg-cardbg border border-gray-800 w-full max-w-md p-5 rounded-xl space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="font-bold text-accent">Lisää uusi maantiekuljetus</h3>
+                <button onclick="closeModal('modal-load')" class="text-gray-400 hover:text-white">✕</button>
+            </div>
+            <div class="space-y-3 text-sm">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Kohdeosoite (Pakollinen)</label>
+                    <input type="text" id="load-dest" placeholder="Satamatie 12, Helsinki" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Tavaran kuvaus / Rahti (Pakollinen)</label>
+                    <input type="text" id="load-desc" placeholder="Lava-rahti (3.5t)" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100">
+                </div>
+                
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Kalustotarve</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2 bg-darkbg border border-gray-700 p-2.5 rounded-lg cursor-pointer hover:border-accent">
+                            <input type="radio" name="truck-type" value="Nuppiauto" checked class="accent-orange-500">
+                            <span class="text-xs font-medium">🚚 Nuppiauto</span>
+                        </label>
+                        <label class="flex items-center gap-2 bg-darkbg border border-gray-700 p-2.5 rounded-lg cursor-pointer hover:border-accent">
+                            <input type="radio" name="truck-type" value="Kasettiauto" class="accent-orange-500">
+                            <span class="text-xs font-medium">🚛 Kasettiauto</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Kohdista kuljettajalle</label>
+                    <select id="load-assignee" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100">
+                        <option value="free">🌐 Kaikki kuljettajat (Vapaa keikka)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Lisätiedot</label>
+                    <textarea id="load-notes" placeholder="Soita vartijalle ennen saapumista." class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100 h-20"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeModal('modal-load')" class="bg-gray-800 text-gray-300 px-4 py-2 rounded-lg text-sm">Peruuta</button>
+                <button onclick="saveLoad()" class="bg-accent hover:bg-accenthover text-white px-4 py-2 rounded-lg text-sm font-medium">Tallenna ja lähetä</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOVELLUSLOGIIKKA (Firebase) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // ==========================================
+        // ⚙️ Firebase-asetukset (sinun projektisi)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqi-NUPSzBrcbfLY06kU3Bdnb8YUOlw3I",
+            authDomain: "maansiirtoapp.firebaseapp.com",
+            projectId: "maansiirtoapp",
+            storageBucket: "maansiirtoapp.firebasestorage.app",
+            messagingSenderId: "554020462667",
+            appId: "1:554020462667:web:22d7f78c0bc54b5f9d6dce"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentUser = { name: '', role: '', isDeputy: false };
+        let driversData = [];
+        let managersData = [];
+        let loadsData = [];
+
+        window.switchView = (viewId) => {
+            ['view-home', 'view-driver-login', 'view-manager-login', 'view-driver-qr', 'view-driver-dashboard', 'view-manager'].forEach(v => {
+                document.getElementById(v).classList.add('hidden');
+            });
+            document.getElementById(viewId).classList.remove('hidden');
+        };
+
+        window.goHome = () => {
+            currentUser = { name: '', role: '', isDeputy: false };
+            document.getElementById('role-badge').innerText = 'Rooli: Ei valittu';
+            window.switchView('view-home');
+        };
+
+        window.openModal = (modalId) => document.getElementById(modalId).classList.remove('hidden');
+        window.closeModal = (modalId) => document.getElementById(modalId).classList.add('hidden');
+
+        // DEV-kirjautumisen tarkistus (Kysyy nimeä ja salasanaa)
+        window.handleDevLogin = () => {
+            let nameInput = document.getElementById('dev-name').value.trim();
+            let pinInput = document.getElementById('dev-pin').value.trim();
+
+            if (nameInput.toLowerCase() === 'jani' && pinInput === 'Kulkee1') {
+                closeModal('modal-dev');
+                document.getElementById('dev-name').value = '';
+                document.getElementById('dev-pin').value = '';
+
+                currentUser = { name: 'Jani', role: 'boss', isDeputy: false };
+                document.getElementById('role-badge').innerText = 'Rooli: DEV (Jani)';
+                document.getElementById('manager-subtitle').innerText = 'DEV / Pääpomo (Jani)';
+                window.switchView('view-manager');
+                renderManager();
+            } else {
+                alert('Virheellinen nimi tai salasana!');
+            }
+        };
+
+        // Muu pomojen/ajojärjestäjien tarkistus tietokannasta
+        window.handleManagerLogin = () => {
+            let nameInput = document.getElementById('manager-login-name').value.trim();
+            let pinInput = document.getElementById('manager-login-pin').value.trim();
+
+            if (nameInput.toLowerCase() === 'jani' && pinInput === 'Kulkee1') {
+                currentUser = { name: 'Jani', role: 'boss', isDeputy: false };
+                document.getElementById('role-badge').innerText = 'Rooli: DEV (Jani)';
+                document.getElementById('manager-subtitle').innerText = 'DEV / Pääpomo (Jani)';
+                window.switchView('view-manager');
+                renderManager();
+                return;
+            }
+
+            let found = managersData.find(m => String(m.name).toLowerCase() === nameInput.toLowerCase() && String(m.pin) === pinInput);
+
+            if (found) {
+                currentUser = { name: found.name, role: found.role, isDeputy: false };
+                let roleTitle = found.role === 'boss' ? 'Pääpomo' : 'Ajojärjestäjä';
+                document.getElementById('role-badge').innerText = `Rooli: ${found.name} (${roleTitle})`;
+                document.getElementById('manager-subtitle').innerText = `${found.name} (${roleTitle})`;
+                window.switchView('view-manager');
+                renderManager();
+            } else {
+                alert('Kirjautuminen epäonnistui! Tarkista käyttäjänimi ja salasana.');
+            }
+        };
+
+        window.handleDriverLogin = () => {
+            let nameInput = document.getElementById('login-name').value.trim();
+            let pinInput = document.getElementById('login-pin').value.trim();
+            
+            let found = driversData.find(d => String(d.name).toLowerCase() === nameInput.toLowerCase() && String(d.pin) === pinInput);
+
+            if (found) {
+                currentUser = { name: String(found.name), role: 'driver', isDeputy: found.isDeputy || false };
+                document.getElementById('role-badge').innerText = `Rooli: Kuljettaja (${found.name})`;
+                document.getElementById('driver-title').innerText = found.name;
+                window.switchView('view-driver-dashboard');
+                renderDriver();
+            } else {
+                alert('Kirjautuminen epäonnistui! Tarkista nimi ja PIN-koodi.');
+            }
+        };
+
+        onSnapshot(collection(db, "drivers"), (snapshot) => {
+            driversData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            refreshView();
+        });
+
+        onSnapshot(collection(db, "managers"), (snapshot) => {
+            managersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            refreshView();
+        });
+
+        onSnapshot(collection(db, "loads"), (snapshot) => {
+            loadsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            refreshView();
+        });
+
+        function refreshView() {
+            if (currentUser.role === 'driver') renderDriver();
+            else if (currentUser.role === 'dispatcher' || currentUser.role === 'boss') renderManager();
+        }
+
+        // --- KULJETTAJAN LOGIIKKA ---
+        function renderDriver() {
+            let driver = driversData.find(d => String(d.name) === String(currentUser.name));
+            let status = driver ? (driver.status || 'free') : 'free';
+            let container = document.getElementById('driver-status-btn-container');
+
+            let statusBtnText = '🟢 Olen vapaa';
+            let statusBtnClass = 'bg-emerald-950 text-emerald-400 border-emerald-700';
+            if (status === 'break') {
+                statusBtnText = '🟡 Tauolla';
+                statusBtnClass = 'bg-yellow-950 text-yellow-400 border-yellow-700';
+            } else if (status === 'busy') {
+                statusBtnText = '🔴 Varattu';
+                statusBtnClass = 'bg-red-950 text-red-400 border-red-700';
+            }
+
+            container.innerHTML = `
+                <button onclick="cycleStatus()" class="text-xs px-3 py-1.5 rounded-full font-medium border ${statusBtnClass}">
+                    ${statusBtnText} (Vaihda)
+                </button>
+            `;
+
+            let kasettiList = document.getElementById('driver-kasetti-list');
+            let nuppiList = document.getElementById('driver-nuppi-list');
+            let activeList = document.getElementById('driver-active-loads');
+            
+            kasettiList.innerHTML = '';
+            nuppiList.innerHTML = '';
+            activeList.innerHTML = '';
+
+            let freeKasetti = loadsData.filter(l => l.status === 'free' && l.truckType === 'Kasettiauto');
+            let freeNuppi = loadsData.filter(l => l.status === 'free' && l.truckType !== 'Kasettiauto');
+            let active = loadsData.filter(l => l.status === 'active' && String(l.driver) === String(currentUser.name));
+
+            document.getElementById('count-kasetti').innerText = freeKasetti.length;
+            document.getElementById('count-nuppi').innerText = freeNuppi.length;
+
+            if (freeKasetti.length === 0) {
+                kasettiList.innerHTML = `<div class="text-xs text-gray-500 text-center p-2 bg-cardbg rounded border border-gray-800">Ei vapaita kasetti-ajoja.</div>`;
+            } else {
+                freeKasetti.forEach(l => renderFreeLoadCard(l, kasettiList));
+            }
+
+            if (freeNuppi.length === 0) {
+                nuppiList.innerHTML = `<div class="text-xs text-gray-500 text-center p-2 bg-cardbg rounded border border-gray-800">Ei vapaita nuppi-ajoja.</div>`;
+            } else {
+                freeNuppi.forEach(l => renderFreeLoadCard(l, nuppiList));
+            }
+
+            if (active.length === 0) {
+                activeList.innerHTML = `<div class="text-xs text-gray-500 text-center p-2 bg-cardbg rounded border border-gray-800">Ei aktiivisia ajoja.</div>`;
+            } else {
+                active.forEach(l => {
+                    let truckBadge = l.truckType === 'Kasettiauto' ? '🚛 Kasettiauto' : '🚚 Nuppiauto';
+                    let maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.destination)}`;
+                    activeList.innerHTML += `
+                        <div class="bg-cardbg p-3.5 rounded-lg border border-accent/40 space-y-2 text-xs">
+                            <div class="flex justify-between items-start">
+                                <span class="font-bold text-sm text-accent">🚚 Matkalla kohteeseen</span>
+                                <span class="bg-orange-950/60 text-orange-400 border border-orange-800/50 px-2 py-0.5 rounded font-medium">${truckBadge}</span>
+                            </div>
+                            <div class="font-semibold text-gray-100">Kohde: ${l.destination}</div>
+                            <div>Rahti: ${l.desc}</div>
+                            ${l.notes ? `<div class="text-orange-400">💬 ${l.notes}</div>` : ''}
+                            <div class="flex gap-2 pt-1">
+                                <a href="${maps}" target="_blank" class="flex-1 bg-gray-800 text-gray-200 py-2 rounded text-center border border-gray-700">🗺️ Navigoi</a>
+                                <button onclick="completeLoad('${l.id}')" class="flex-1 bg-emerald-600 text-white py-2 rounded font-medium">✅ Valmis</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        function renderFreeLoadCard(l, container) {
+            container.innerHTML += `
+                <div class="bg-cardbg p-3.5 rounded-lg border border-gray-800 space-y-2 text-xs">
+                    <div class="flex justify-between items-start">
+                        <span class="font-bold text-sm text-gray-200">📍 ${l.destination}</span>
+                    </div>
+                    <div>Rahti: ${l.desc}</div>
+                    ${l.notes ? `<div class="text-orange-400">💬 ${l.notes}</div>` : ''}
+                    <button onclick="claimLoad('${l.id}')" class="w-full bg-accent hover:bg-accenthover text-white py-2 rounded font-medium transition">Varaa kuljetus</button>
+                </div>
+            `;
+        }
+
+        window.cycleStatus = async () => {
+            let driver = driversData.find(d => String(d.name) === String(currentUser.name));
+            if (!driver) return;
+            let current = driver.status || 'free';
+            let next = 'free';
+            if (current === 'free') next = 'break';
+            else if (current === 'break') next = 'busy';
+            else next = 'free';
+
+            await updateDoc(doc(db, "drivers", driver.id), { status: next, isAvailable: (next === 'free') });
+        };
+
+        window.claimLoad = async (id) => {
+            let driver = driversData.find(d => String(d.name) === String(currentUser.name));
+            await updateDoc(doc(db, "loads", id), { status: 'active', driver: currentUser.name });
+            if (driver) {
+                await updateDoc(doc(db, "drivers", driver.id), { status: 'busy', isAvailable: false });
+            }
+        };
+
+        window.completeLoad = async (id) => {
+            await deleteDoc(doc(db, "loads", id));
+            let driver = driversData.find(d => String(d.name) === String(currentUser.name));
+            if (driver) await updateDoc(doc(db, "drivers", driver.id), { status: 'free', isAvailable: true });
+        };
+
+        // --- POMON / DEV-HALLINTA ---
+        function renderManager() {
+            let staffList = document.getElementById('manager-staff-list');
+            let driverList = document.getElementById('manager-driver-list');
+            let loadsList = document.getElementById('manager-loads-list');
+            let assignee = document.getElementById('load-assignee');
+
+            staffList.innerHTML = '';
+            driverList.innerHTML = '';
+            loadsList.innerHTML = '';
+            assignee.innerHTML = `<option value="free">🌐 Kaikki kuljettajat (Vapaa keikka)</option>`;
+
+            managersData.forEach(m => {
+                let roleName = m.role === 'boss' ? '👑 Pääpomo' : '📊 Ajojärjestäjä';
+                staffList.innerHTML += `
+                    <div class="flex justify-between items-center bg-darkbg p-2.5 rounded border border-orange-500/30 text-xs">
+                        <span>${m.name} (${roleName} - Salasana: ${m.pin})</span>
+                        <button onclick="removeManager('${m.id}')" class="text-red-400 bg-red-950/30 px-2 py-1 rounded">Poista</button>
+                    </div>
+                `;
+            });
+
+            driversData.forEach(d => {
+                let status = d.status || 'free';
+                let statusBadge = '<span class="text-emerald-400 font-semibold">🟢 Vapaa</span>';
+                if (status === 'break') statusBadge = '<span class="text-yellow-400 font-semibold">🟡 Tauolla</span>';
+                else if (status === 'busy') statusBadge = '<span class="text-red-400 font-semibold">🔴 Varattu</span>';
+
+                driverList.innerHTML += `
+                    <div class="flex justify-between items-center bg-darkbg p-2.5 rounded border border-gray-800 text-xs">
+                        <span>${d.name} (PIN: ${d.pin}) - ${statusBadge}</span>
+                        <button onclick="removeDriver('${d.id}')" class="text-red-400 bg-red-950/30 px-2 py-1 rounded">Poista</button>
+                    </div>
+                `;
+                assignee.innerHTML += `<option value="${d.name}">${d.name}</option>`;
+            });
+
+            if (loadsData.length === 0) loadsList.innerHTML = `<div class="text-xs text-gray-500 text-center p-2">Ei kuormia.</div>`;
+            loadsData.forEach(l => {
+                let truckBadge = l.truckType === 'Kasettiauto' ? '🚛 Kasettiauto' : '🚚 Nuppiauto';
+                let statusText = l.status === 'free' ? 'Odottaa ottajaa (Vapaa)' : `Matkalla (${l.driver})`;
+                let statusColor = l.status === 'free' ? 'text-blue-400' : 'text-emerald-400 font-semibold';
+
+                loadsList.innerHTML += `
+                    <div class="bg-cardbg p-3.5 rounded-lg border border-gray-800 space-y-1 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-gray-200">📍 ${l.destination}</span>
+                            <span class="bg-gray-800 text-gray-300 px-2 py-0.5 rounded">${truckBadge}</span>
+                        </div>
+                        <div>Rahti: ${l.desc}</div>
+                        <div>Tila: <span class="${statusColor}">${statusText}</span></div>
+                        <div class="text-right pt-1"><button onclick="deleteLoad('${l.id}')" class="text-red-400 underline">Poista kuorma</button></div>
+                    </div>
+                `;
+            });
+        }
+
+        window.saveManager = async () => {
+            let name = document.getElementById('new-manager-name').value.trim();
+            let pin = document.getElementById('new-manager-pin').value.trim();
+            let role = document.getElementById('new-manager-role').value;
+            if (!name || !pin) return alert('Täytä nimi ja salasana!');
+
+            await addDoc(collection(db, "managers"), {
+                name: String(name),
+                pin: String(pin),
+                role: role
+            });
+
+            closeModal('modal-manager');
+            document.getElementById('new-manager-name').value = '';
+            document.getElementById('new-manager-pin').value = '';
+        };
+
+        window.removeManager = async (id) => { await deleteDoc(doc(db, "managers", id)); };
+
+        window.saveDriver = async () => {
+            let name = document.getElementById('new-driver-name').value.trim();
+            let pin = document.getElementById('new-driver-pin').value.trim();
+            if (!name || !pin) return alert('Täytä tiedot!');
+            
+            await addDoc(collection(db, "drivers"), { 
+                name: String(name), 
+                pin: String(pin), 
+                isDeputy: false, 
+                isAvailable: true, 
+                status: 'free' 
+            });
+
+            closeModal('modal-driver');
+            document.getElementById('new-driver-name').value = '';
+            document.getElementById('new-driver-pin').value = '';
+        };
+
+        window.removeDriver = async (id) => { await deleteDoc(doc(db, "drivers", id)); };
+
+        window.saveLoad = async () => {
+            let dest = document.getElementById('load-dest').value.trim();
+            let desc = document.getElementById('load-desc').value.trim();
+            let truckType = document.querySelector('input[name="truck-type"]:checked').value;
+            let assignee = document.getElementById('load-assignee').value;
+            let notes = document.getElementById('load-notes').value.trim();
+
+            if (!dest || !desc) {
+                alert('Kohdeosoite ja tavaran kuvaus ovat pakollisia!');
+                return;
+            }
+
+            closeModal('modal-load');
+            document.getElementById('load-dest').value = '';
+            document.getElementById('load-desc').value = '';
+            document.getElementById('load-notes').value = '';
+
+            await addDoc(collection(db, "loads"), {
+                destination: dest,
+                desc: desc,
+                truckType: truckType,
+                notes: notes,
+                status: assignee === 'free' ? 'free' : 'active',
+                driver: assignee === 'free' ? null : assignee
+            });
+
+            if (assignee !== 'free') {
+                let drv = driversData.find(d => String(d.name) === String(assignee));
+                if (drv) await updateDoc(doc(db, "drivers", drv.id), { status: 'busy', isAvailable: false });
+            }
+        };
+
+        window.deleteLoad = async (id) => { await deleteDoc(doc(db, "loads", id)); };
+    </script>
+</body>
+</html>
