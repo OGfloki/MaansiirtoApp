@@ -184,24 +184,24 @@
                 <div id="manager-staff-list" class="space-y-2 pt-1"></div>
             </div>
 
-            <!-- KULJETTAJAROSTERI (NÄKYY VAIN POMOLLE / DEV:LLE) -->
-            <div id="section-driver-roster" class="bg-cardbg p-4 rounded-xl border border-gray-800 space-y-3">
+            <!-- KULJETTAJAROSTERI (NÄKYY POMOLLE KOKONAAN, AJOJÄRJESTÄJÄLLE VAIN TILAT ILMAN PINNEJÄ/NAPPEJA) -->
+            <div class="bg-cardbg p-4 rounded-xl border border-gray-800 space-y-3">
                 <div class="flex justify-between items-center">
                     <h3 class="text-sm font-semibold text-gray-300">Kuljettajarosteri</h3>
-                    <button onclick="openModal('modal-driver')" class="text-xs bg-gray-800 hover:bg-gray-700 border border-gray-700 text-accent px-2.5 py-1.5 rounded transition">
+                    <button id="btn-add-driver" onclick="openModal('modal-driver')" class="text-xs bg-gray-800 hover:bg-gray-700 border border-gray-700 text-accent px-2.5 py-1.5 rounded transition">
                         + Lisää Kuljettaja
                     </button>
                 </div>
                 <div id="manager-driver-list" class="space-y-2 pt-1"></div>
             </div>
 
-            <!-- Kuormat (NÄKYY KAIKILLE HALLINTAPÄÄSYLLISILLE) -->
+            <!-- Kuormat (NÄKYY KAIKILLE) -->
             <div class="space-y-3">
                 <h3 class="text-sm font-semibold text-gray-300">Kaikki kuormat</h3>
                 <div id="manager-loads-list" class="space-y-3"></div>
             </div>
 
-            <!-- Tänään valmiit ajot (Pomo / Ajojärjestäjä) -->
+            <!-- Tänään valmiit ajot -->
             <div class="space-y-3 pt-2 border-t border-gray-800 pt-4">
                 <h3 class="text-sm font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
                     <span>✅</span> TÄNÄÄN VALMIIT AJOT (<span id="manager-count-completed">0</span>)
@@ -671,10 +671,12 @@
             managerCompletedList.innerHTML = '';
             assignee.innerHTML = `<option value="free">🌐 Kaikki kuljettajat (Vapaa keikka)</option>`;
 
-            // Piilotetaan pomojen ja kuljettajien hallintaosuudet, jos kyseessä on pelkkä ajojärjestäjä (dispatcher)
             let isFullBoss = currentUser.role === 'boss' || currentUser.role === 'developper';
+            
+            // Piilotetaan pomojen hallinta kokonaan ajojärjestäjältä
             document.getElementById('section-boss-management').style.display = isFullBoss ? 'block' : 'none';
-            document.getElementById('section-driver-roster').style.display = isFullBoss ? 'block' : 'none';
+            // Piilotetaan "Lisää kuljettaja" -nappi ajojärjestäjältä
+            document.getElementById('btn-add-driver').style.display = isFullBoss ? 'block' : 'none';
 
             if (isFullBoss) {
                 let visibleManagers = managersData.filter(m => m.role !== 'developper');
@@ -687,13 +689,16 @@
                         </div>
                     `;
                 });
+            }
 
-                driversData.forEach(d => {
-                    let status = d.status || 'free';
-                    let statusBadge = '<span class="text-emerald-400 font-semibold">🟢 Vapaa</span>';
-                    if (status === 'break') statusBadge = '<span class="text-yellow-400 font-semibold">🟡 Tauolla</span>';
-                    else if (status === 'busy') statusBadge = '<span class="text-red-400 font-semibold">🔴 Varattu</span>';
+            // Kuljettajarosteri kaikille, mutta ilman PIN-koodeja ja nappeja ajojärjestäjälle
+            driversData.forEach(d => {
+                let status = d.status || 'free';
+                let statusBadge = '<span class="text-emerald-400 font-semibold">🟢 Vapaa</span>';
+                if (status === 'break') statusBadge = '<span class="text-yellow-400 font-semibold">🟡 Tauolla</span>';
+                else if (status === 'busy') statusBadge = '<span class="text-red-400 font-semibold">🔴 Varattu</span>';
 
+                if (isFullBoss) {
                     driverList.innerHTML += `
                         <div class="flex justify-between items-center bg-darkbg p-2.5 rounded border border-gray-800 text-xs">
                             <span>${d.name} (PIN: ${d.pin}) - ${statusBadge}</span>
@@ -703,11 +708,14 @@
                             </div>
                         </div>
                     `;
-                });
-            }
+                } else {
+                    driverList.innerHTML += `
+                        <div class="flex justify-between items-center bg-darkbg p-2.5 rounded border border-gray-800 text-xs">
+                            <span>${d.name} - ${statusBadge}</span>
+                        </div>
+                    `;
+                }
 
-            // Kuljettajat näkyvät aina pudotusvalikossa kun luodaan kuormaa
-            driversData.forEach(d => {
                 assignee.innerHTML += `<option value="${d.name}">${d.name}</option>`;
             });
 
@@ -812,7 +820,7 @@
             let dest = document.getElementById('load-dest').value.trim();
             let desc = document.getElementById('load-desc').value.trim();
             let truckType = document.querySelector('input[name="truck-type"]:checked').value;
-            let assignee = document.getElementById('load-assignee'].value;
+            let assignee = document.getElementById('load-assignee').value;
             let notes = document.getElementById('load-notes').value.trim();
 
             if (!dest || !desc) {
