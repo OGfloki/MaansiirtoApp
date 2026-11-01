@@ -156,7 +156,9 @@
 
             <!-- Tänään valmiit ajot -->
             <div class="space-y-3 pt-2 border-t border-gray-800 pt-4">
-                <h3 class="text-sm font-semibold uppercase tracking-wider text-emerald-400">✅ Tänään valmiit ajot (<span id="count-completed">0</span>)</h3>
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+                    <span>✅</span> TÄNÄÄN VALMIIT AJOT (<span id="count-completed">0</span>)
+                </h3>
                 <div id="driver-completed-loads" class="space-y-3"></div>
             </div>
         </div>
@@ -203,7 +205,9 @@
 
             <!-- Tänään valmiit ajot (Pomo) -->
             <div class="space-y-3 pt-2 border-t border-gray-800 pt-4">
-                <h3 class="text-sm font-semibold uppercase tracking-wider text-emerald-400">✅ Tänään valmiit ajot (<span id="manager-count-completed">0</span>)</h3>
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+                    <span>✅</span> TÄNÄÄN VALMIIT AJOT (<span id="manager-count-completed">0</span>)
+                </h3>
                 <div id="manager-completed-loads" class="space-y-3"></div>
             </div>
         </div>
@@ -600,10 +604,10 @@
                 completed.forEach(l => {
                     let truckBadge = l.truckType === 'Kasettiauto' ? '🚛 Kasettiauto' : '🚚 Nuppiauto';
                     completedList.innerHTML += `
-                        <div class="bg-cardbg p-3 rounded-lg border border-emerald-500/30 space-y-1 text-xs opacity-80">
+                        <div class="bg-cardbg p-3.5 rounded-lg border border-emerald-500/40 space-y-1.5 text-xs">
                             <div class="flex justify-between items-center">
-                                <span class="font-bold text-emerald-400">✅ Valmis: ${l.destination}</span>
-                                <span class="bg-gray-800 text-gray-300 px-2 py-0.5 rounded">${truckBadge}</span>
+                                <span class="font-bold text-sm text-emerald-400">✅ Valmis: ${l.destination}</span>
+                                <span class="bg-gray-800 text-gray-300 px-2 py-0.5 rounded font-medium">${truckBadge}</span>
                             </div>
                             <div>Rahti: ${l.desc}</div>
                         </div>
@@ -736,10 +740,10 @@
                 completedLoads.forEach(l => {
                     let truckBadge = l.truckType === 'Kasettiauto' ? '🚛 Kasettiauto' : '🚚 Nuppiauto';
                     managerCompletedList.innerHTML += `
-                        <div class="bg-cardbg p-3 rounded-lg border border-emerald-500/30 space-y-1 text-xs">
+                        <div class="bg-cardbg p-3.5 rounded-lg border border-emerald-500/40 space-y-1.5 text-xs">
                             <div class="flex justify-between items-center">
-                                <span class="font-bold text-emerald-400">✅ ${l.destination}</span>
-                                <span class="bg-gray-800 text-gray-300 px-2 py-0.5 rounded">${truckBadge}</span>
+                                <span class="font-bold text-sm text-emerald-400">✅ Valmis: ${l.destination}</span>
+                                <span class="bg-gray-800 text-gray-300 px-2 py-0.5 rounded font-medium">${truckBadge}</span>
                             </div>
                             <div>Rahti: ${l.desc}</div>
                             <div class="text-gray-400">Kuljettaja: <span class="text-gray-200 font-medium">${l.driver}</span></div>
