@@ -161,7 +161,7 @@
             </div>
         </div>
 
-        <!-- NÄKYMÄ: HALLINTAPANEELI (POMO) -->
+        <!-- NÄKYMÄ: HALLINTAPANEELI (POMO & AJOJÄRJESTÄJÄ) -->
         <div id="view-manager" class="hidden space-y-6">
             <div class="bg-cardbg p-4 rounded-xl border border-gray-800 flex justify-between items-center">
                 <div>
@@ -173,8 +173,8 @@
                 </button>
             </div>
 
-            <!-- Pomon / Ajojärjestäjien hallinta -->
-            <div class="bg-cardbg p-4 rounded-xl border border-orange-500/40 space-y-3">
+            <!-- POMOJEN HALLINTA (NÄKYY VAIN POMOLLE / DEV:LLE) -->
+            <div id="section-boss-management" class="bg-cardbg p-4 rounded-xl border border-orange-500/40 space-y-3">
                 <div class="flex justify-between items-center">
                     <h3 class="text-sm font-semibold text-orange-400">👑 Pomot & Ajojärjestäjät</h3>
                     <button onclick="openModal('modal-manager')" class="text-xs bg-orange-600 hover:bg-orange-500 text-white px-2.5 py-1.5 rounded transition">
@@ -184,8 +184,8 @@
                 <div id="manager-staff-list" class="space-y-2 pt-1"></div>
             </div>
 
-            <!-- Kuljettajarosteri -->
-            <div class="bg-cardbg p-4 rounded-xl border border-gray-800 space-y-3">
+            <!-- KULJETTAJAROSTERI (NÄKYY VAIN POMOLLE / DEV:LLE) -->
+            <div id="section-driver-roster" class="bg-cardbg p-4 rounded-xl border border-gray-800 space-y-3">
                 <div class="flex justify-between items-center">
                     <h3 class="text-sm font-semibold text-gray-300">Kuljettajarosteri</h3>
                     <button onclick="openModal('modal-driver')" class="text-xs bg-gray-800 hover:bg-gray-700 border border-gray-700 text-accent px-2.5 py-1.5 rounded transition">
@@ -195,13 +195,13 @@
                 <div id="manager-driver-list" class="space-y-2 pt-1"></div>
             </div>
 
-            <!-- Kuormat -->
+            <!-- Kuormat (NÄKYY KAIKILLE HALLINTAPÄÄSYLLISILLE) -->
             <div class="space-y-3">
                 <h3 class="text-sm font-semibold text-gray-300">Kaikki kuormat</h3>
                 <div id="manager-loads-list" class="space-y-3"></div>
             </div>
 
-            <!-- Tänään valmiit ajot (Pomo) -->
+            <!-- Tänään valmiit ajot (Pomo / Ajojärjestäjä) -->
             <div class="space-y-3 pt-2 border-t border-gray-800 pt-4">
                 <h3 class="text-sm font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
                     <span>✅</span> TÄNÄÄN VALMIIT AJOT (<span id="manager-count-completed">0</span>)
@@ -256,7 +256,7 @@
                     <label class="block text-xs text-gray-400 mb-1">Rooli</label>
                     <select id="new-manager-role" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100">
                         <option value="boss">Pomo</option>
-                        <option value="dispatcher">Ajojärjestäjä</option>
+                        <option value="dispatcher">Ajojärjestäjä (Vain keikat)</option>
                     </select>
                 </div>
             </div>
@@ -657,7 +657,7 @@
             if (driver) await updateDoc(doc(db, "drivers", driver.id), { status: 'free', isAvailable: true });
         };
 
-        // --- POMON / HALLINTA ---
+        // --- POMON / AJOJÄRJESTÄJÄN HALLINTA ---
         function renderManager() {
             let staffList = document.getElementById('manager-staff-list');
             let driverList = document.getElementById('manager-driver-list');
@@ -671,34 +671,43 @@
             managerCompletedList.innerHTML = '';
             assignee.innerHTML = `<option value="free">🌐 Kaikki kuljettajat (Vapaa keikka)</option>`;
 
-            // Suodatetaan 'developper'-rooli pois, jotta se ei näy pomojen hallintalistassa
-            let visibleManagers = managersData.filter(m => m.role !== 'developper');
+            // Piilotetaan pomojen ja kuljettajien hallintaosuudet, jos kyseessä on pelkkä ajojärjestäjä (dispatcher)
+            let isFullBoss = currentUser.role === 'boss' || currentUser.role === 'developper';
+            document.getElementById('section-boss-management').style.display = isFullBoss ? 'block' : 'none';
+            document.getElementById('section-driver-roster').style.display = isFullBoss ? 'block' : 'none';
 
-            visibleManagers.forEach(m => {
-                let roleName = m.role === 'boss' ? '👑 Pomo' : '📊 Ajojärjestäjä';
-                staffList.innerHTML += `
-                    <div class="flex justify-between items-center bg-darkbg p-2.5 rounded border border-orange-500/30 text-xs">
-                        <span>${m.name} (${roleName} - Salasana: ${m.pin})</span>
-                        <button onclick="removeManager('${m.id}')" class="text-red-400 bg-red-950/30 px-2 py-1 rounded">Poista</button>
-                    </div>
-                `;
-            });
-
-            driversData.forEach(d => {
-                let status = d.status || 'free';
-                let statusBadge = '<span class="text-emerald-400 font-semibold">🟢 Vapaa</span>';
-                if (status === 'break') statusBadge = '<span class="text-yellow-400 font-semibold">🟡 Tauolla</span>';
-                else if (status === 'busy') statusBadge = '<span class="text-red-400 font-semibold">🔴 Varattu</span>';
-
-                driverList.innerHTML += `
-                    <div class="flex justify-between items-center bg-darkbg p-2.5 rounded border border-gray-800 text-xs">
-                        <span>${d.name} (PIN: ${d.pin}) - ${statusBadge}</span>
-                        <div class="flex gap-1.5">
-                            <button onclick="makeManager('${d.name}', '${d.pin}')" class="text-orange-400 bg-orange-950/40 px-2 py-1 rounded hover:bg-orange-900/60 transition">Ylennä pomoksi</button>
-                            <button onclick="removeDriver('${d.id}')" class="text-red-400 bg-red-950/30 px-2 py-1 rounded">Poista</button>
+            if (isFullBoss) {
+                let visibleManagers = managersData.filter(m => m.role !== 'developper');
+                visibleManagers.forEach(m => {
+                    let roleName = m.role === 'boss' ? '👑 Pomo' : '📊 Ajojärjestäjä';
+                    staffList.innerHTML += `
+                        <div class="flex justify-between items-center bg-darkbg p-2.5 rounded border border-orange-500/30 text-xs">
+                            <span>${m.name} (${roleName} - Salasana: ${m.pin})</span>
+                            <button onclick="removeManager('${m.id}')" class="text-red-400 bg-red-950/30 px-2 py-1 rounded">Poista</button>
                         </div>
-                    </div>
-                `;
+                    `;
+                });
+
+                driversData.forEach(d => {
+                    let status = d.status || 'free';
+                    let statusBadge = '<span class="text-emerald-400 font-semibold">🟢 Vapaa</span>';
+                    if (status === 'break') statusBadge = '<span class="text-yellow-400 font-semibold">🟡 Tauolla</span>';
+                    else if (status === 'busy') statusBadge = '<span class="text-red-400 font-semibold">🔴 Varattu</span>';
+
+                    driverList.innerHTML += `
+                        <div class="flex justify-between items-center bg-darkbg p-2.5 rounded border border-gray-800 text-xs">
+                            <span>${d.name} (PIN: ${d.pin}) - ${statusBadge}</span>
+                            <div class="flex gap-1.5">
+                                <button onclick="makeManager('${d.name}', '${d.pin}')" class="text-orange-400 bg-orange-950/40 px-2 py-1 rounded hover:bg-orange-900/60 transition">Ylennä ajojärjestäjäksi</button>
+                                <button onclick="removeDriver('${d.id}')" class="text-red-400 bg-red-950/30 px-2 py-1 rounded">Poista</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Kuljettajat näkyvät aina pudotusvalikossa kun luodaan kuormaa
+            driversData.forEach(d => {
                 assignee.innerHTML += `<option value="${d.name}">${d.name}</option>`;
             });
 
@@ -751,13 +760,13 @@
         }
 
         window.makeManager = async (name, pin) => {
-            if (!confirm(`Haluatko antaa käyttäjälle ${name} pomon / ajojärjestäjän oikeudet?`)) return;
+            if (!confirm(`Haluatko antaa käyttäjälle ${name} ajojärjestäjän oikeudet?`)) return;
             await addDoc(collection(db, "managers"), {
                 name: String(name),
                 pin: String(pin),
                 role: 'dispatcher'
             });
-            alert(`${name} on nyt lisätty pomoihin/ajojärjestäjiin!`);
+            alert(`${name} on nyt lisätty ajojärjestäjäksi!`);
         };
 
         window.saveManager = async () => {
@@ -803,7 +812,7 @@
             let dest = document.getElementById('load-dest').value.trim();
             let desc = document.getElementById('load-desc').value.trim();
             let truckType = document.querySelector('input[name="truck-type"]:checked').value;
-            let assignee = document.getElementById('load-assignee').value;
+            let assignee = document.getElementById('load-assignee'].value;
             let notes = document.getElementById('load-notes').value.trim();
 
             if (!dest || !desc) {
