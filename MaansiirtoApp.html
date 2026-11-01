@@ -45,7 +45,7 @@
             <div class="bg-cardbg p-6 rounded-xl border border-gray-800 text-center space-y-4 shadow-lg">
                 <h2 class="text-lg font-semibold text-gray-200">Valitse roolisi</h2>
                 <div class="space-y-3 pt-2">
-                    <button onclick="switchView('view-driver-login')" class="w-full bg-accent hover:bg-accenthover text-white font-medium py-3 px-4 rounded-lg transition shadow-md flex items-center justify-center gap-2">
+                    <button onclick="openDriverSelection()" class="w-full bg-accent hover:bg-accenthover text-white font-medium py-3 px-4 rounded-lg transition shadow-md flex items-center justify-center gap-2">
                         <span>🚛</span> Olen kuljettaja
                     </button>
                     <button onclick="switchView('view-manager-login')" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium py-3 px-4 rounded-lg border border-gray-700 transition flex items-center justify-center gap-2">
@@ -62,30 +62,37 @@
             </div>
         </div>
 
-        <!-- NÄKYMÄ: KULJETTAJAN KIRJAUTUMINEN -->
+        <!-- NÄKYMÄ: KULJETTAJAN VALINTALISTA JA PIN -->
         <div id="view-driver-login" class="hidden space-y-4">
             <div class="bg-cardbg p-6 rounded-xl border border-gray-800 space-y-4 shadow-lg">
                 <div class="flex justify-between items-center border-b border-gray-800 pb-2">
-                    <h2 class="text-lg font-semibold text-gray-200">Kuljettajan kirjautuminen</h2>
+                    <h2 class="text-lg font-semibold text-gray-200">Valitse nimesi</h2>
                     <button onclick="goHome()" class="text-xs text-gray-400 hover:text-white">Takaisin</button>
+                </div>
+                
+                <!-- Kuljettajalista, josta valitaan oma nimi -->
+                <div id="driver-selection-list" class="space-y-2 max-h-60 overflow-y-auto">
+                    <!-- Latautuu automaattisesti tietokannasta -->
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: KULJETTAJAN PIN-KYSELY -->
+        <div id="modal-driver-pin" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+            <div class="bg-cardbg border border-gray-700 w-full max-w-sm p-5 rounded-xl space-y-4 shadow-2xl">
+                <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                    <h3 class="font-bold text-accent" id="pin-modal-title">Syötä PIN-koodi</h3>
+                    <button onclick="closeModal('modal-driver-pin')" class="text-gray-400 hover:text-white">✕</button>
                 </div>
                 <div class="space-y-3 text-sm">
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Nimesi</label>
-                        <input type="text" id="login-name" placeholder="Esim. Matti Meikäläinen" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100 focus:outline-none focus:border-accent">
+                        <label class="block text-xs text-gray-400 mb-1">PIN-koodi kuljettajalle</label>
+                        <input type="password" id="selected-driver-pin" placeholder="****" maxlength="6" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100 focus:outline-none focus:border-accent">
                     </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">PIN-koodi</label>
-                        <input type="password" id="login-pin" placeholder="****" maxlength="6" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100 focus:outline-none focus:border-accent">
-                    </div>
-                    <button onclick="handleDriverLogin()" class="w-full bg-accent hover:bg-accenthover text-white font-medium py-2.5 rounded-lg transition shadow mt-2">
-                        Kirjaudu sisään
-                    </button>
                 </div>
-                <div class="border-t border-gray-800 pt-3 text-center">
-                    <button onclick="switchView('view-driver-qr')" class="text-xs text-accent hover:underline">
-                        📷 Uusi laite? Näytä QR-koodi pomolle
-                    </button>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button onclick="closeModal('modal-driver-pin')" class="bg-gray-800 text-gray-300 px-3 py-2 rounded-lg text-xs">Peruuta</button>
+                    <button onclick="verifyDriverPin()" class="bg-accent text-white px-4 py-2 rounded-lg text-xs font-medium">Kirjaudu sisään</button>
                 </div>
             </div>
         </div>
@@ -109,22 +116,6 @@
                     <button onclick="handleManagerLogin()" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-medium py-2.5 rounded-lg transition shadow mt-2">
                         Kirjaudu hallintaan
                     </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- NÄKYMÄ: KULJETTAJAN QR -->
-        <div id="view-driver-qr" class="hidden space-y-4">
-            <div class="bg-cardbg p-6 rounded-xl border border-gray-800 text-center space-y-4 shadow-lg">
-                <div class="flex justify-between items-center border-b border-gray-800 pb-2">
-                    <h2 class="text-sm font-semibold text-gray-200">Kuljettajan laitevarmennus</h2>
-                    <button onclick="switchView('view-driver-login')" class="text-xs text-gray-400 hover:text-white">Takaisin</button>
-                </div>
-                <p class="text-xs text-gray-400">Näytä tämä QR-koodi pomolle, jotta hän voi rekisteröidä laitteesi ja antaa PIN-koodin.</p>
-                <div class="bg-white p-4 inline-block rounded-lg mx-auto shadow">
-                    <div class="w-32 h-32 bg-black flex items-center justify-center text-white text-xs font-mono text-center p-2">
-                        [ QR-KOODI ]
-                    </div>
                 </div>
             </div>
         </div>
@@ -170,7 +161,7 @@
             <div class="bg-cardbg p-4 rounded-xl border border-gray-800 flex justify-between items-center">
                 <div>
                     <h2 class="font-bold text-lg text-accent">Hallintapaneeli</h2>
-                    <p class="text-xs text-orange-400 font-semibold" id="manager-subtitle">DEV / Pääpomo</p>
+                    <p class="text-xs text-orange-400 font-semibold" id="manager-subtitle">DEV / Pomo</p>
                 </div>
                 <button onclick="openModal('modal-load')" class="bg-accent hover:bg-accenthover text-white text-sm font-medium py-2 px-3 rounded-lg transition shadow">
                     + Lisää kuorma
@@ -251,7 +242,7 @@
                 <div>
                     <label class="block text-xs text-gray-400 mb-1">Rooli</label>
                     <select id="new-manager-role" class="w-full bg-darkbg border border-gray-700 rounded-lg p-2.5 text-gray-100">
-                        <option value="boss">Pääpomo</option>
+                        <option value="boss">Pomo</option>
                         <option value="dispatcher">Ajojärjestäjä</option>
                     </select>
                 </div>
@@ -357,12 +348,13 @@
         const db = getFirestore(app);
 
         let currentUser = { name: '', role: '', isDeputy: false };
+        let selectedDriverNameForPin = '';
         let driversData = [];
         let managersData = [];
         let loadsData = [];
 
         window.switchView = (viewId) => {
-            ['view-home', 'view-driver-login', 'view-manager-login', 'view-driver-qr', 'view-driver-dashboard', 'view-manager'].forEach(v => {
+            ['view-home', 'view-driver-login', 'view-manager-login', 'view-driver-dashboard', 'view-manager'].forEach(v => {
                 document.getElementById(v).classList.add('hidden');
             });
             document.getElementById(viewId).classList.remove('hidden');
@@ -370,12 +362,61 @@
 
         window.goHome = () => {
             currentUser = { name: '', role: '', isDeputy: false };
+            selectedDriverNameForPin = '';
             document.getElementById('role-badge').innerText = 'Rooli: Ei valittu';
             window.switchView('view-home');
         };
 
         window.openModal = (modalId) => document.getElementById(modalId).classList.remove('hidden');
         window.closeModal = (modalId) => document.getElementById(modalId).classList.add('hidden');
+
+        // Avaa kuljettajavalintanäkymän ja renderöi listan
+        window.openDriverSelection = () => {
+            renderDriverSelectionList();
+            window.switchView('view-driver-login');
+        };
+
+        function renderDriverSelectionList() {
+            let container = document.getElementById('driver-selection-list');
+            container.innerHTML = '';
+
+            if (driversData.length === 0) {
+                container.innerHTML = `<div class="text-xs text-gray-500 text-center p-3 bg-darkbg rounded-lg border border-gray-800">Ei rekisteröityjä kuljettajia. Pyydä pomoa lisäämään kuljettaja rosteriin.</div>`;
+                return;
+            }
+
+            driversData.forEach(d => {
+                container.innerHTML += `
+                    <button onclick="selectDriver('${d.name}')" class="w-full text-left bg-darkbg hover:bg-gray-800 border border-gray-700 p-3 rounded-lg text-sm font-medium transition flex justify-between items-center">
+                        <span>🚛 ${d.name}</span>
+                        <span class="text-xs text-accent">Valitse &rarr;</span>
+                    </button>
+                `;
+            });
+        }
+
+        window.selectDriver = (name) => {
+            selectedDriverNameForPin = name;
+            document.getElementById('pin-modal-title').innerText = `Kirjaudu: ${name}`;
+            document.getElementById('selected-driver-pin').value = '';
+            window.openModal('modal-driver-pin');
+        };
+
+        window.verifyDriverPin = () => {
+            let pinInput = document.getElementById('selected-driver-pin').value.trim();
+            let found = driversData.find(d => String(d.name) === String(selectedDriverNameForPin) && String(d.pin) === pinInput);
+
+            if (found) {
+                closeModal('modal-driver-pin');
+                currentUser = { name: String(found.name), role: 'driver', isDeputy: found.isDeputy || false };
+                document.getElementById('role-badge').innerText = `Rooli: Kuljettaja (${found.name})`;
+                document.getElementById('driver-title').innerText = found.name;
+                window.switchView('view-driver-dashboard');
+                renderDriver();
+            } else {
+                alert('Väärä PIN-koodi!');
+            }
+        };
 
         // DEV-kirjautumisen tarkistus (Kysyy nimeä ja salasanaa)
         window.handleDevLogin = () => {
@@ -389,7 +430,7 @@
 
                 currentUser = { name: 'Jani', role: 'boss', isDeputy: false };
                 document.getElementById('role-badge').innerText = 'Rooli: DEV (Jani)';
-                document.getElementById('manager-subtitle').innerText = 'DEV / Pääpomo (Jani)';
+                document.getElementById('manager-subtitle').innerText = 'DEV / Pomo (Jani)';
                 window.switchView('view-manager');
                 renderManager();
             } else {
@@ -405,7 +446,7 @@
             if (nameInput.toLowerCase() === 'jani' && pinInput === 'Kulkee1') {
                 currentUser = { name: 'Jani', role: 'boss', isDeputy: false };
                 document.getElementById('role-badge').innerText = 'Rooli: DEV (Jani)';
-                document.getElementById('manager-subtitle').innerText = 'DEV / Pääpomo (Jani)';
+                document.getElementById('manager-subtitle').innerText = 'DEV / Pomo (Jani)';
                 window.switchView('view-manager');
                 renderManager();
                 return;
@@ -415,30 +456,13 @@
 
             if (found) {
                 currentUser = { name: found.name, role: found.role, isDeputy: false };
-                let roleTitle = found.role === 'boss' ? 'Pääpomo' : 'Ajojärjestäjä';
+                let roleTitle = found.role === 'boss' ? 'Pomo' : 'Ajojärjestäjä';
                 document.getElementById('role-badge').innerText = `Rooli: ${found.name} (${roleTitle})`;
                 document.getElementById('manager-subtitle').innerText = `${found.name} (${roleTitle})`;
                 window.switchView('view-manager');
                 renderManager();
             } else {
                 alert('Kirjautuminen epäonnistui! Tarkista käyttäjänimi ja salasana.');
-            }
-        };
-
-        window.handleDriverLogin = () => {
-            let nameInput = document.getElementById('login-name').value.trim();
-            let pinInput = document.getElementById('login-pin').value.trim();
-            
-            let found = driversData.find(d => String(d.name).toLowerCase() === nameInput.toLowerCase() && String(d.pin) === pinInput);
-
-            if (found) {
-                currentUser = { name: String(found.name), role: 'driver', isDeputy: found.isDeputy || false };
-                document.getElementById('role-badge').innerText = `Rooli: Kuljettaja (${found.name})`;
-                document.getElementById('driver-title').innerText = found.name;
-                window.switchView('view-driver-dashboard');
-                renderDriver();
-            } else {
-                alert('Kirjautuminen epäonnistui! Tarkista nimi ja PIN-koodi.');
             }
         };
 
@@ -526,9 +550,14 @@
                             <div class="font-semibold text-gray-100">Kohde: ${l.destination}</div>
                             <div>Rahti: ${l.desc}</div>
                             ${l.notes ? `<div class="text-orange-400">💬 ${l.notes}</div>` : ''}
-                            <div class="flex gap-2 pt-1">
-                                <a href="${maps}" target="_blank" class="flex-1 bg-gray-800 text-gray-200 py-2 rounded text-center border border-gray-700">🗺️ Navigoi</a>
-                                <button onclick="completeLoad('${l.id}')" class="flex-1 bg-emerald-600 text-white py-2 rounded font-medium">✅ Valmis</button>
+                            
+                            <!-- Napit: Navigoi, Peruuta varaus, Valmis -->
+                            <div class="space-y-1.5 pt-1">
+                                <a href="${maps}" target="_blank" class="block w-full bg-gray-800 text-gray-200 py-2 rounded text-center border border-gray-700">🗺️ Navigoi Google Mapsissa</a>
+                                <div class="flex gap-2">
+                                    <button onclick="unclaimLoad('${l.id}')" class="flex-1 bg-yellow-900/80 hover:bg-yellow-800 text-yellow-200 py-2 rounded font-medium border border-yellow-700">↩️ Peruuta varaus</button>
+                                    <button onclick="completeLoad('${l.id}')" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded font-medium">✅ Valmis</button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -569,6 +598,16 @@
             }
         };
 
+        window.unclaimLoad = async (id) => {
+            if (!confirm('Haluatko varmasti peruuttaa tämän varauksen ja palauttaa keikan takaisin vapaaksi?')) return;
+            
+            await updateDoc(doc(db, "loads", id), { status: 'free', driver: null });
+            let driver = driversData.find(d => String(d.name) === String(currentUser.name));
+            if (driver) {
+                await updateDoc(doc(db, "drivers", driver.id), { status: 'free', isAvailable: true });
+            }
+        };
+
         window.completeLoad = async (id) => {
             await deleteDoc(doc(db, "loads", id));
             let driver = driversData.find(d => String(d.name) === String(currentUser.name));
@@ -588,7 +627,7 @@
             assignee.innerHTML = `<option value="free">🌐 Kaikki kuljettajat (Vapaa keikka)</option>`;
 
             managersData.forEach(m => {
-                let roleName = m.role === 'boss' ? '👑 Pääpomo' : '📊 Ajojärjestäjä';
+                let roleName = m.role === 'boss' ? '👑 Pomo' : '📊 Ajojärjestäjä';
                 staffList.innerHTML += `
                     <div class="flex justify-between items-center bg-darkbg p-2.5 rounded border border-orange-500/30 text-xs">
                         <span>${m.name} (${roleName} - Salasana: ${m.pin})</span>
